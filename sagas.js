@@ -1,24 +1,25 @@
-import { all, put, takeEvery } from 'redux-saga/effects';
+import { all, put, takeEvery, call } from 'redux-saga/effects';
 
-// Returns a Promise that resolves after x ms
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+// Returns a Promise that resolves after x ms, so we can block generator
+export const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function* helloSaga() {
   console.log('Hello Sagas!');
 }
 
 // Worker Saga: will perform async task
-function* incrementAsync() {
-  // Block the generator
+export function* incrementAsync() {
   // When a promise is yielded to the middleware, middleware will suspend the
   // Saga until the Promise completes
-  yield delay(1000);
+  // Call delay indirectly using call Effect to make a subsequent deep
+  // comparison possible:
+  yield call(delay, 1000); // => { CALL: { fun: delay, args: [1000] } }
   // Once resolved, middleware resumes the Saga until next yield
 
   // an Effect - POJO w/ instructions to be fulfilled by the middleware
   // When a middleware receives an Effect yielded, the Saga is paused until the
   // Effect fulfills
-  yield put({ type: 'INCREMENT' });
+  yield put({ type: 'INCREMENT' }); // => { PUT: { type: 'INCREMENT' } }
 }
 
 // Watcher Saga: spawn a new incrementAsync task on each INCREMENT_ASYNC
